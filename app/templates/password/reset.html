@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password - FastShip</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700;800&display=swap');
+
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f8fafc;
+            font-family: "Manrope", sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 460px;
+            padding: 40px;
+            border-radius: 24px;
+            background-color: #ffffff;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.03), 0 8px 10px -6px rgba(15, 23, 42, 0.03), 0 0 0 1px rgba(15, 23, 42, 0.05);
+        }
+
+        .logo-header {
+            text-align: center;
+            margin-bottom: 32px;
+            font-size: 24px;
+            font-weight: 800;
+            color: #1e293b;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-header span {
+            color: #2563eb;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        p.subtitle {
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        input[type=password] {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            font-family: inherit;
+            color: #0f172a;
+            border-radius: 12px;
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        input[type=password]:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        input[type=password]::placeholder {
+            color: #94a3b8;
+        }
+
+        input[type=submit] {
+            width: 100%;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: inherit;
+            color: #ffffff;
+            background-color: #1e1b4b;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(30, 27, 75, 0.1);
+            margin-top: 8px;
+        }
+
+        input[type=submit]:hover {
+            background-color: #16143c;
+            transform: translateY(-1px);
+        }
+
+        input[type=submit]:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="logo-header">🚀 <span>Fast</span>Ship</div>
+
+        <h1>Reset Password</h1>
+        <p class="subtitle">Please enter your new password below. Make sure it contains a secure combination of characters.</p>
+
+        <form action="{{ reset_url }}" method="post">
+            <div class="input-group">
+                <label for="password">New Password</label>
+                <input type="password" id="password" name="password" placeholder="••••••••" required>
+            </div>
+            <input type="submit" value="Reset Password">
+        </form>
+    </div>
+</body>
+</html>

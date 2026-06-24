@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your FastShip Account</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100% !important;
+            background-color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        table { border-collapse: collapse; }
+        .email-container { max-width: 520px; margin: 0 auto; padding: 40px 20px; }
+        .main-card {
+            background-color: #ffffff;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+            border: 1px solid #e2e8f0;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #1e1b4b;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 4px 12px rgba(30, 27, 75, 0.15);
+            margin: 12px 0;
+        }
+    </style>
+</head>
+<body>
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f8fafc">
+    <tr>
+        <td align="center">
+            <div class="email-container">
+                <div class="main-card">
+
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                        <tr>
+                            <td align="center">
+                                <span style="font-size: 28px; font-weight: 800; color: #1e293b; letter-spacing: -0.5px;">
+                                    🚀 <span style="color: #2563eb;">Fast</span>Ship
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div style="height: 1px; background-color: #f1f5f9; margin: 24px 0;"></div>
+
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                        <tr>
+                            <td align="left" style="font-size: 16px; line-height: 1.6; color: #334155;">
+                                <p style="margin: 0 0 12px 0; font-size: 18px; font-weight: 600; color: #0f172a;">
+                                    Hi {{ username }} 👋,
+                                </p>
+                                <p style="margin: 0 0 24px 0; color: #475569;">
+                                    Thank you for signing up! To complete your registration and secure your account, please verify your email address by clicking the link below:
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                        <tr>
+                            <td align="center" style="padding: 12px 0 24px 0;">
+                                <a href="{{ verification_url }}" target="_blank" class="cta-button">
+                                    Verify Account
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                        <tr>
+                            <td align="left" style="font-size: 13px; line-height: 1.5; color: #64748b;">
+                                <p style="margin: 0;">If the button above doesn't work, copy and paste this URL into your browser:</p>
+                                <p style="margin: 6px 0 0 0; color: #2563eb; word-break: break-all;">{{ verification_url }}</p>
+                            </td>
+                        </tr>
+                    </table>
+
+                </div>
+
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                    <tr>
+                        <td align="center" style="padding-top: 32px; font-size: 12px; line-height: 1.5; color: #94a3b8;">
+                            <p style="margin: 0 0 4px 0; font-weight: 600;">Powered by FastShip</p>
+                            <p style="margin: 0;">This is an automated operational email regarding your account creation. &copy; 2026 FastShip.</p>
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

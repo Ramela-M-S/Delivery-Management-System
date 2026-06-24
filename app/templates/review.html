@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Your Delivery | FastShip</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+
+        h1 { font-weight: 700; color: #1e293b; margin-bottom: 12px; font-size: 24px; }
+        p { color: #64748b; font-size: 15px; margin-bottom: 24px; line-height: 1.5; }
+
+        .rating {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        input[type=radio] { display: none; }
+
+        .rating label {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            background: white;
+            color: #64748b;
+        }
+
+        .rating label:hover { border-color: #2563eb; color: #2563eb; }
+
+        input[type=radio]:checked + label {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            border: 2px solid #e2e8f0;
+            background: #f1f5f9;
+            resize: none;
+            margin-bottom: 20px;
+            font-family: inherit;
+            outline: none;
+            transition: border 0.2s;
+            box-sizing: border-box;
+        }
+
+        textarea:focus { border-color: #2563eb; }
+
+        input[type=submit] {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            background: #0f172a;
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        input[type=submit]:hover { background: #334155; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Hey! 👋</h1>
+        <p>We'd love your candid feedback. Just click one of the ratings below, and you're done!</p>
+
+        <form method="post" action="{{ review_url }}">
+            <input type="hidden" name="shipment_id" value="{{ shipment_id }}">
+
+            <div class="rating">
+                <input type="radio" name="rating" id="1" value="1"><label for="1">1</label>
+                <input type="radio" name="rating" id="2" value="2"><label for="2">2</label>
+                <input type="radio" name="rating" id="3" value="3"><label for="3">3</label>
+                <input type="radio" name="rating" id="4" value="4"><label for="4">4</label>
+                <input type="radio" name="rating" id="5" value="5" checked><label for="5">5</label>
+            </div>
+
+            <textarea name="comment" rows="3" placeholder="Describe your experience (optional)"></textarea>
+
+            <input type="submit" value="Submit Review">
+        </form>
+    </div>
+
+</body>
+</html>
