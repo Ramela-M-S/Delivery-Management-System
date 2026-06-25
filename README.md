@@ -229,51 +229,40 @@ These interfaces allow developers to:
 
 ## 🔗 Core API Endpoints
 
-### Authentication
+### 📦 Shipment
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| GET | `/shipment/` | Get Shipment |
+| POST | `/shipment/` | Submit Shipment |
+| PATCH | `/shipment/{id}` | Update Shipment |
+| GET | `/shipment/{id}/tag` | Add Tag To Shipment |
+| DELETE | `/shipment/{id}/tag` | Remove Tag From Shipment |
+| GET | `/shipment/{id}/cancel` | Cancel Shipment |
 
-| Method | Endpoint                | Description                   |
-| ------ | ----------------------- | ----------------------------- |
-| POST   | `/auth/register`        | Register a new user           |
-| POST   | `/auth/login`           | User login                    |
-| POST   | `/auth/forgot-password` | Generate password reset token |
-| POST   | `/auth/reset-password`  | Reset password                |
+### 🏪 Seller
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| POST | `/seller/signup` | Register Seller |
+| POST | `/seller/login` | Login Seller |
+| GET | `/seller/me` | Get Seller Profile |
+| GET | `/seller/shipments` | Get Shipments |
+| GET | `/seller/forgot_password` | Forgot Password |
+| GET | `/seller/reset_password_form` | Get Reset Password Form |
+| POST | `/seller/reset_password` | Reset Password |
+| GET | `/seller/logout` | Logout Seller |
 
----
-
-### Sellers
-
-| Method | Endpoint       | Description      |
-| ------ | -------------- | ---------------- |
-| POST   | `/seller`      | Create seller    |
-| GET    | `/seller`      | Get all sellers  |
-| GET    | `/seller/{id}` | Get seller by ID |
-| PUT    | `/seller/{id}` | Update seller    |
-| DELETE | `/seller/{id}` | Delete seller    |
-
----
-
-### Delivery Partners
-
-| Method | Endpoint                 | Description             |
-| ------ | ------------------------ | ----------------------- |
-| POST   | `/delivery-partner`      | Create delivery partner |
-| GET    | `/delivery-partner`      | Get all partners        |
-| GET    | `/delivery-partner/{id}` | Get partner by ID       |
-| PUT    | `/delivery-partner/{id}` | Update partner          |
-| DELETE | `/delivery-partner/{id}` | Delete partner          |
-
----
-
-### Shipments
-
-| Method | Endpoint         | Description          |
-| ------ | ---------------- | -------------------- |
-| POST   | `/shipment`      | Create shipment      |
-| GET    | `/shipment`      | Get all shipments    |
-| GET    | `/shipment/{id}` | Get shipment details |
-| PUT    | `/shipment/{id}` | Update shipment      |
-| DELETE | `/shipment/{id}` | Delete shipment      |
-
+### 🚚 Delivery Partner
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| POST | `/partner/signup` | Register Delivery Partner |
+| POST | `/partner/login` | Login Delivery Partner |
+| GET | `/partner/me` | Get Delivery Partner Profile |
+| GET | `/partner/shipments` | Get Shipments |
+| POST | `/partner/update` | Update Delivery Partner |
+| GET | `/partner/forgot_password` | Forgot Password |
+| GET | `/partner/reset_password_form` | Get Reset Password Form |
+| POST | `/partner/reset_password` | Reset Password |
+| GET | `/partner/logout` | Logout Delivery Partner |
 ---
 
 ## 📦 Example API Request
