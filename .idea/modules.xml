@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Shipment.iml" filepath="$PROJECT_DIR$/.idea/Shipment.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../.gemini/antigravity/scratch/frontend/project/.idea/project.iml" filepath="$PROJECT_DIR$/../.gemini/antigravity/scratch/frontend/project/.idea/project.iml" />
     </modules>
   </component>
 </project>

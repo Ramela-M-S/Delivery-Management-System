@@ -2,6 +2,7 @@
 <project version="4">
   <component name="DataSourcePerFileMappings">
     <file url="file://$PROJECT_DIR$/app/database.py" value="525496f0-f7a2-4407-9614-c71641925c62" />
+    <file url="file://$PROJECT_DIR$/migrations/versions/7f3750dc3440_delete_specific_seller.py" value="525496f0-f7a2-4407-9614-c71641925c62" />
     <file url="file://$PROJECT_DIR$/migrations/versions/859b847a087c_add_tag.py" value="525496f0-f7a2-4407-9614-c71641925c62" />
   </component>
 </project>

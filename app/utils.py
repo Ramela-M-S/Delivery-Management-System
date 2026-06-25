@@ -1,51 +1,55 @@
 from datetime import datetime, timedelta, timezone
-from uuid import uuid4
+from json import JSONDecodeError, dumps
 from pathlib import Path
+from typing import Any, Mapping
+from uuid import uuid4
+
 import jwt
-from fastapi import HTTPException
-from starlette import status
-from itsdangerous import Serializer, URLSafeSerializer, URLSafeTimedSerializer, BadSignature, SignatureExpired
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
+
 from app.config import security_settings
 
 _serializer = URLSafeTimedSerializer(security_settings.JWT_SECRET)
 
 APP_DIR = Path(__file__).resolve().parent
-TEMPLATE_DIR = APP_DIR/"templates"
+TEMPLATE_DIR = APP_DIR / "templates"
 
 
 def generate_access_token(
-        data:dict,
-        expiry = timedelta(days=1)
-):
-    token = jwt.encode(
+    data: dict,
+    expiry: timedelta = timedelta(days=7),
+) -> str:
+    return jwt.encode(
         payload={
             **data,
-            "jti":str(uuid4()),
+            "jti": str(uuid4()),
             "exp": datetime.now(timezone.utc) + expiry,
         },
         algorithm=security_settings.JWT_ALGORITHM,
         key=security_settings.JWT_SECRET,
     )
 
-    return token
-def decode_access_token(token: str) -> dict:
+
+def decode_access_token(token: str) -> dict | None:
     try:
-        payload = jwt.decode(
-            token,
-            security_settings.JWT_SECRET,
-            algorithms=[security_settings.JWT_ALGORITHM]
+        return jwt.decode(
+            jwt=token,
+            key=security_settings.JWT_SECRET,
+            algorithms=[security_settings.JWT_ALGORITHM],
         )
-        return payload
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token has expired")
     except jwt.PyJWTError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token")
-
-def generate_url_safe_token(data: dict, salt:str|None = None) -> str:
-    return _serializer.dumps(data, salt = salt)
+        return None
 
 
-def decode_url_safe_token(token: str, salt:str|None = None, expiry: timedelta | None = None) -> dict | None:
+def generate_url_safe_token(data: dict, salt: str | None = None) -> str:
+    return _serializer.dumps(data, salt=salt)
+
+
+def decode_url_safe_token(
+    token: str,
+    salt: str | None = None,
+    expiry: timedelta | None = None,
+) -> dict | None:
     try:
         return _serializer.loads(
             token,
@@ -54,3 +58,23 @@ def decode_url_safe_token(token: str, salt:str|None = None, expiry: timedelta | 
         )
     except (BadSignature, SignatureExpired):
         return None
+
+
+def print_label(data: Any, title: str | None = None):
+
+    from rich import print
+    from rich.panel import Panel
+
+    try:
+        data = dumps(data, indent=4) if isinstance(data, (dict, Mapping)) else data
+    except JSONDecodeError:
+        pass
+
+    print()
+    print(
+        Panel(
+            data,
+            title=title,
+        ),
+        end="\n\n",
+    )

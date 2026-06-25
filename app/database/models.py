@@ -3,7 +3,7 @@ from enum import Enum
 from uuid import UUID, uuid4
 
 from pydantic import EmailStr
-from sqlalchemy import ARRAY, INTEGER
+from sqlalchemy import String
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import Column, Field, Relationship, SQLModel, select
@@ -23,6 +23,14 @@ class TagName(str, Enum):
 
     async def tag(self, session: AsyncSession) -> "Tag":
         return await session.scalar(select(Tag).where(Tag.name == self.value))
+
+
+class ShipmentStatus(str, Enum):
+    placed = "placed"
+    in_transit = "in_transit"
+    out_for_delivery = "out_for_delivery"
+    delivered = "delivered"
+    cancelled = "cancelled"
 
 
 class ShipmentTag(SQLModel, table=True):
@@ -54,17 +62,8 @@ class Tag(SQLModel, table=True):
     shipments: list["Shipment"] = Relationship(
         back_populates="tags",
         link_model=ShipmentTag,
-        sa_relationship_kwargs={"lazy": "selectin"},
+        sa_relationship_kwargs={"lazy": "immediate"},
     )
-
-
-
-class ShipmentStatus(str, Enum):
-    placed = "placed"
-    in_transit = "in_transit"
-    out_for_delivery = "out_for_delivery"
-    delivered = "delivered"
-    cancelled = "cancelled"
 
 
 class Shipment(SQLModel, table=True):
@@ -103,19 +102,22 @@ class Shipment(SQLModel, table=True):
         sa_relationship_kwargs={"lazy": "selectin"},
     )
 
-    delivery_partner_id: UUID = Field(
-        foreign_key="delivery_partner.id",
-    )
+    delivery_partner_id: UUID = Field(foreign_key="delivery_partner.id")
     delivery_partner: "DeliveryPartner" = Relationship(
         back_populates="shipments",
         sa_relationship_kwargs={"lazy": "selectin"},
     )
-    review: "Review" = Relationship(back_populates="shipment",
-        sa_relationship_kwargs={"lazy": "selectin"},)
 
-    tags: list[Tag] = Relationship(back_populates="shipments",
-                                   link_model=ShipmentTag,
-                                    sa_relationship_kwargs={"lazy": "selectin"}, )
+    review: "Review" = Relationship(
+        back_populates="shipment",
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
+
+    tags: list[Tag] = Relationship(
+        back_populates="shipments",
+        link_model=ShipmentTag,
+        sa_relationship_kwargs={"lazy": "immediate"},
+    )
 
     @property
     def status(self):
@@ -139,7 +141,7 @@ class ShipmentEvent(SQLModel, table=True):
         )
     )
 
-    location: str
+    location: int
     status: ShipmentStatus
     description: str | None = Field(default=None)
 
@@ -153,9 +155,12 @@ class ShipmentEvent(SQLModel, table=True):
 class User(SQLModel):
     name: str
 
-    email: EmailStr = Field(unique=True, index = True)
-    email_verified: bool = Field(default=False)
-    password_hash: str = Field(exclude=True)
+    email: EmailStr
+    email_verified: bool = Field(default=True)
+    password_hash: str = Field(
+        sa_type=String(60),
+        exclude=True
+    )
 
 
 class Seller(User, table=True):
@@ -175,12 +180,25 @@ class Seller(User, table=True):
         )
     )
 
-    address: str | None = Field(default=None)
-    zip_code: int | None = Field(default=None)
+    address: str
+    zip_code: int
 
     shipments: list[Shipment] = Relationship(
         back_populates="seller",
         sa_relationship_kwargs={"lazy": "selectin"},
+    )
+
+
+class ServicableLocation(SQLModel, table=True):
+    __tablename__ = "servicable_location"
+
+    partner_id: UUID = Field(
+        foreign_key="delivery_partner.id",
+        primary_key=True,
+    )
+    location_id: int = Field(
+        foreign_key="location.zip_code",
+        primary_key=True,
     )
 
 
@@ -201,8 +219,13 @@ class DeliveryPartner(User, table=True):
         )
     )
 
-    serviceable_zip_codes: list[int] = Field(
-        sa_column=Column(ARRAY(INTEGER)),
+    # serviceable_zip_codes: list[int] = Field(
+    #     sa_column=Column(ARRAY(INTEGER)),
+    # )
+    servicable_locations: list["Location"] = Relationship(
+        back_populates="delivery_partners",
+        link_model=ServicableLocation,
+        sa_relationship_kwargs={"lazy": "immediate"},
     )
     max_handling_capacity: int
 
@@ -224,8 +247,26 @@ class DeliveryPartner(User, table=True):
     def current_handling_capacity(self):
         return self.max_handling_capacity - len(self.active_shipments)
 
+
+class Location(SQLModel, table=True):
+    __tablename__ = "location"
+
+    zip_code: int = Field(primary_key=True)
+    
+    # Additional metadata fields
+    # estimated_delivery_days: int = Field(default=3)
+    # surcharge: float = Field(default=0.0)
+    # active: bool = Field(default=True)
+
+    delivery_partners: list[DeliveryPartner] = Relationship(
+        back_populates="servicable_locations",
+        link_model=ServicableLocation,
+        sa_relationship_kwargs={"lazy": "immediate"},
+    )
+
+
 class Review(SQLModel, table=True):
-    __tablename__="review"
+    __tablename__ = "review"
 
     id: UUID = Field(
         sa_column=Column(
@@ -249,3 +290,5 @@ class Review(SQLModel, table=True):
         back_populates="review",
         sa_relationship_kwargs={"lazy": "selectin"},
     )
+
+

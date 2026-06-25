@@ -1,30 +1,46 @@
+import asyncio
+import random
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Request, status, Form
+from fastapi import APIRouter, Form, Request
 from fastapi.templating import Jinja2Templates
 
-from app.utils import TEMPLATE_DIR, generate_url_safe_token, decode_url_safe_token
+from app.api.tag import APITag
+from app.config import app_settings
+from app.core.exceptions import NothingToUpdate
+from app.database.models import TagName, ShipmentStatus
+from app.utils import TEMPLATE_DIR
 
-from ..dependencies import DeliveryPartnerDep, SellerDep, ShipmentServiceDep, SessionDep
-from ..schemas.shipment import ShipmentCreate, ShipmentRead, ShipmentUpdate
-from ...config import app_settings
-from ...database.models import TagName
+from ..dependencies import DeliveryPartnerDep, SellerDep, ShipmentServiceDep
+from ..schemas.shipment import (
+    ShipmentCreate,
+    ShipmentRead,
+    ShipmentUpdate,
+)
 
-router = APIRouter(prefix="/shipment", tags=["Shipment"])
+router = APIRouter(prefix="/shipment", tags=[APITag.SHIPMENT])
 
 
 templates = Jinja2Templates(TEMPLATE_DIR)
 
-
 ### Tracking details of shipment
-@router.get("/track")
+@router.get("/track", include_in_schema=False)
 async def get_tracking(request: Request, id: UUID, service: ShipmentServiceDep):
     # Check for shipment with given id
     shipment = await service.get(id)
 
     context = shipment.model_dump()
-    context["status"] = shipment.status
+    if shipment.status==ShipmentStatus.placed:
+        context["status"] = "Placed"
+    elif shipment.status==ShipmentStatus.cancelled:
+        context["status"] = "Cancelled"
+    elif shipment.status== ShipmentStatus.out_for_delivery:
+        context["status"] = "Out-for-Delivery"
+    elif shipment.status==ShipmentStatus.delivered:
+        context["status"] = "Delivered"
+    else:
+        context["status"] = "In-Transit"
     context["partner"] = shipment.delivery_partner.name
     context["timeline"] = shipment.timeline
     context["timeline"].reverse()
@@ -39,16 +55,10 @@ async def get_tracking(request: Request, id: UUID, service: ShipmentServiceDep):
 ### Read a shipment by id
 @router.get("/", response_model=ShipmentRead)
 async def get_shipment(id: UUID, service: ShipmentServiceDep):
+    # Simluate delay
+    await asyncio.sleep(random.randint(1, 3))
     # Check for shipment with given id
-    shipment = await service.get(id)
-
-    if shipment is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Given id doesn't exist!",
-        )
-
-    return shipment
+    return await service.get(id)
 
 
 ### Create a new shipment
@@ -73,60 +83,19 @@ async def update_shipment(
     update = shipment_update.model_dump(exclude_none=True)
 
     if not update:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No data provided to update",
-        )
+        raise NothingToUpdate()
 
     return await service.update(id, shipment_update, partner)
 
 
-### Cancel a shipment by id
-@router.get("/cancel", response_model=ShipmentRead)
-async def cancel_shipment(
-    id: UUID,
-    seller: SellerDep,
-    service: ShipmentServiceDep,
-):
-    return await service.cancel(id, seller)
-
-
-@router.post("/review")
-async def submit_review(
-        token: str,
-        rating: Annotated[int, Form(ge=1, le=5)],
-        comment: Annotated[str | None, Form()],
-        service: ShipmentServiceDep,
-):
-    # Use the DECODE function
-    print(f"DEBUG: Received token type: {type(token)}, value: {token}")
-
-    token_str = str(token)
-    payload = decode_url_safe_token(token)
-    if not payload:
-        raise HTTPException(status_code=400, detail="Invalid token")
-
-    shipment_id = payload.get("id")
-    await service.rate(str(UUID(shipment_id)), rating, comment)
-    return {"detail": "Review submitted successfully"}
-
-
-### Sumbit a reivew for a shipment
-@router.get("/review")
-async def submit_review_page(request: Request, token: str):
-    # Decode to verify it's valid and get the ID
-    payload = decode_url_safe_token(token)
-    if not payload:
-        raise HTTPException(status_code=400, detail="Invalid token")
-
-    return templates.TemplateResponse(
-        request=request,
-        name="review.html",
-        context={
-            "review_url": f"http://{app_settings.APP_DOMAIN}/shipment/review?token={token}",
-            "shipment_id": payload.get("id")  # Pass this so the hidden input works
-        },
-    )
+### Get all shipments with a tag
+# @router.get("/tagged", response_model=list[ShipmentRead])
+# async def get_shipments_with_tag(
+#     tag_name: TagName,
+#     session: SessionDep,
+# ):
+#     tag = await tag_name.tag(session)
+#     return tag.shipments
 
 
 ### Add a tag to a shipment
@@ -149,11 +118,35 @@ async def remove_tag_from_shipment(
     return await service.remove_tag(id, tag_name)
 
 
-## Get all shipments with a tag
-# @router.get("/tagged", response_model=list[ShipmentRead])
-# async def get_shipments_with_tag(
-#     tag_name: TagName,
-#     session: SessionDep,
-# ):
-#     tag = await tag_name.tag(session)
-#     return tag.shipments
+### Cancel a shipment by id
+@router.get("/cancel")
+async def cancel_shipment(
+    id: UUID,
+    seller: SellerDep,
+    service: ShipmentServiceDep,
+):
+    await service.cancel(id, seller)
+
+
+### Sumbit a reivew for a shipment
+@router.get("/review", include_in_schema=False)
+async def submit_review_page(request: Request, token: str):
+    return templates.TemplateResponse(
+        request=request,
+        name="review.html",
+        context={
+            "review_url": f"http://{app_settings.APP_DOMAIN}/shipment/review?token={token}",
+        },
+    )
+
+
+### Sumbit a reivew for a shipment
+@router.post("/review", include_in_schema=False)
+async def submit_review(
+    token: str,
+    rating: Annotated[int, Form(ge=1, le=5)],
+    comment: Annotated[str | None, Form()],
+    service: ShipmentServiceDep,
+):
+    await service.rate(token, rating, comment)
+    return {"detail": "Review submitted"}

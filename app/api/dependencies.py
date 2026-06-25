@@ -1,15 +1,15 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import ClientNotAuthorized, InvalidToken
 from app.core.security import oauth2_scheme_partner, oauth2_scheme_seller
 from app.database.models import DeliveryPartner, Seller
 from app.database.redis import is_jti_blacklisted
 from app.database.session import get_session
 from app.services.delivery_partner import DeliveryPartnerService
-from app.services.notification import NotificationService
 from app.services.seller import SellerService
 from app.services.shipment import ShipmentService
 from app.services.shipment_event import ShipmentEventService
@@ -25,10 +25,7 @@ async def _get_access_token(token: str) -> dict:
 
     # Validate the token
     if data is None or await is_jti_blacklisted(data["jti"]):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired access token",
-        )
+        raise InvalidToken()
 
     return data
 
@@ -49,20 +46,19 @@ async def get_partner_access_token(
 
 # Logged In Seller
 async def get_current_seller(
-    token_data: Annotated[dict, Depends(get_seller_access_token)],
-    session: SessionDep,
+        token_data: Annotated[dict, Depends(get_seller_access_token)],
+        session: SessionDep,
 ):
-    seller = await session.get(
-        Seller,
-        UUID(token_data["user"]["id"]),
-    )
+    user_id = token_data["user"]["id"]
+    print(f"DEBUG: Looking for Seller with UUID: {user_id}")
+
+    seller = await session.get(Seller, UUID(user_id))
 
     if seller is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authorized",
-        )
+        print(f"DEBUG: Seller with ID {user_id} NOT FOUND in database!")
+        raise ClientNotAuthorized()
 
+    print(f"DEBUG: Seller found: {seller.email}")
     return seller
 
 
@@ -77,23 +73,14 @@ async def get_current_partner(
     )
 
     if partner is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authorized",
-        )
-    if not partner.email_verified:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Client Not authorized: Email not verified"
-        )
+        raise ClientNotAuthorized()
 
     return partner
 
 
 # Shipment service dep
 def get_shipment_service(
-    session: SessionDep,
-
+    session: SessionDep
 ):
     return ShipmentService(
         session,
@@ -141,8 +128,3 @@ DeliveryPartnerServiceDep = Annotated[
     DeliveryPartnerService,
     Depends(get_delivery_partner_service),
 ]
-
-# In your dependencies.py
-def get_notification_service(tasks):
-    # This runs only when a request hits an endpoint
-    return NotificationService(tasks)

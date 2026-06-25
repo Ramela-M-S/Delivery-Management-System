@@ -1,10 +1,9 @@
+import asyncio
+
 from asgiref.sync import async_to_sync
 from celery import Celery
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from pydantic import EmailStr
-import sys
-import importlib
-
 from twilio.rest import Client
 
 from app.config import db_settings, notification_settings
@@ -54,21 +53,24 @@ def send_mail(
 
 @app.task
 def send_email_with_template(
-    recipients: list[EmailStr],
-    subject: str,
-    context: dict,
-    template_name: str,
+        recipients: list[EmailStr],
+        subject: str,
+        context: dict,
+        template_name: str,
 ):
-    print(f"DEBUG: Attempting to connect as {notification_settings.MAIL_USERNAME}")
-    real_asyncio = importlib.import_module('asyncio')
-    message=MessageSchema(
-            recipients=recipients,
-            subject=subject,
-            template_body=context,
-            subtype=MessageType.html,
-        )
-    real_asyncio.run(fast_mail.send_message(message, template_name=template_name))
-    return "Email Sent!"
+    # Create the message
+    message = MessageSchema(
+        recipients=recipients,
+        subject=subject,
+        template_body=context,
+        subtype=MessageType.html,
+    )
+
+    # Run the async send_message directly in the task's own event loop
+    asyncio.run(fast_mail.send_message(message, template_name=template_name))
+
+    return "Message Sent!"
+
 
 @app.task
 def send_sms(to: str, body: str):
@@ -77,8 +79,3 @@ def send_sms(to: str, body: str):
         to=to,
         body=body,
     )
-
-@app.task
-def add_log(log: str) -> None:
-    with open("file.log", 'a') as file:
-        file.write(f"{log}\n")

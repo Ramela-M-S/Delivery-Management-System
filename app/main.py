@@ -1,68 +1,75 @@
-from time import perf_counter
-
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.routing import APIRoute
 from scalar_fastapi import get_scalar_api_reference
-from contextlib import asynccontextmanager
-
-from rich import panel
-from app.database.session import create_db_tables
-
 
 from app.api.router import master_router
-from app.worker.tasks import add_log
+from app.api.tag import APITag
+from app.core.exceptions import add_exception_handlers
+# from app.core.logging import logger
 
-
-
-@asynccontextmanager
-async def lifespan_handler(app: FastAPI):
-    print(panel.Panel("Server started...",border_style = "green"))
-
-    await create_db_tables()
-    yield
-
-    print(panel.Panel("Server stopped...",border_style = "red"))
-
-
-description ="""
+description = """
 Delivery Management System for sellers and delivery agents
 
 ### Seller
--Submit shipment effortlessly
--Share tracking links with customers
-
+- Submit shipment effortlessly
+- Share tracking links with customers
 
 ### Delivery Agent
--Auto accept shipments
--Track and update shipment status
--Email and SMS notifications
-
+- Auto accept shipments
+- Track and update shipment status
+- Email and SMS notifications
 """
+tags_metadata = [
+        {
+            "name": APITag.SHIPMENT.value,
+            "description": "Operations related to shipments.",
+        },
+        {
+            "name": APITag.SELLER.value,
+            "description": "Operations related to seller.",
+        },
+        {
+            "name": APITag.PARTNER.value,
+            "description": "Operations related to delivery partner.",
+        },
+    ]
 
 
-app = FastAPI(lifespan = lifespan_handler,
-              title="FastShip",
-              description=description,)
-app.include_router(master_router)
+def custom_generate_unique_id_function(route: APIRoute) -> str:
+    return route.name
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5500"],
+app = FastAPI(
+    title="FastShip",
+    description=description,
+
+    version="0.1.0",
+    openapi_tags=tags_metadata,
+    # generate_unique_id_function=custom_generate_unique_id_function,
 )
 
-@app.middleware("http")
-async def custom_middleware (request: Request, call_next):
-    start = perf_counter()
-    response: Response = await call_next(request)
-    end = perf_counter()
-    time_taken = round(end-start, 2)
+# Add CORS middleware to allow requests from the frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    add_log(f"{request.method} {request.url} ({response.status_code}) {time_taken} s")
-    return response
+# Add all endpoints
+app.include_router(master_router)
 
+# Add custom exception handlers
+add_exception_handlers(app)
 
+@app.get('/')
+def root():
+    return {"message": "Welcome to FastShip API!"}
+
+# Scalar API Documentation
 @app.get("/scalar", include_in_schema=False)
-async def get_scalar_docs():
+def get_scalar_docs():
     return get_scalar_api_reference(
         openapi_url=app.openapi_url,
         title="Scalar API",
