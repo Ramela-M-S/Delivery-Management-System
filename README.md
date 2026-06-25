@@ -123,6 +123,10 @@ Built with scalability and maintainability in mind, the system follows modern ba
 
 ![Order History](screenshots/Order_History.png)
 
+### Swagger API Documentation
+
+![Swagger Docs](screenshots/scalar-docs.png)
+
 
 ## 🛠 Tech Stack
 
