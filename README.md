@@ -91,10 +91,6 @@ Built with scalability and maintainability in mind, the system follows modern ba
 
 ![Signup Page](screenshots/Signup_Page.png)
 
-### Mail Page
-
-![Mail Page](screenshots/Mail_Page.png)
-
 ### Email Verification
 
 ![Mail Verification](screenshots/Mail_Verification.png)
